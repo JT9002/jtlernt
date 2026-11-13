@@ -2,17 +2,17 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1f7a4d">
   <title>Einkaufsliste</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="kopf">
-    <h1>Familien-Einkaufsliste</h1>
-    <div class="kopf-knoepfe">
-      <button id="ansicht-knopf" class="ich" type="button" hidden>Übersicht</button>
-      <button id="ich-knopf" class="ich" type="button" hidden>Ich bin: <strong id="ich-name"></strong> ▾</button>
-    </div>
+    <h1 id="titel">Einkaufsliste</h1>
+    <button id="ich-knopf" class="ich" type="button" aria-label="Person wechseln" hidden>
+      <span id="ich-name"></span> ▾
+    </button>
   </header>
 
   <div id="verbindung" class="hinweis hinweis-fehler oben" hidden>
@@ -32,7 +32,7 @@
         <input type="text" name="name" maxlength="30" placeholder="Name 2" autocomplete="off">
         <input type="text" name="name" maxlength="30" placeholder="Name 3" autocomplete="off">
         <input type="text" name="name" maxlength="30" placeholder="Name 4" autocomplete="off">
-        <button type="submit">Speichern</button>
+        <button type="submit" class="knopf-gross">Speichern</button>
       </form>
     </section>
 
@@ -42,32 +42,33 @@
       <div id="auswahl-knoepfe" class="auswahl-knoepfe"></div>
     </section>
 
-    <!-- Die eigentliche Liste -->
-    <section id="liste" hidden>
+    <!-- Ansicht 1: Liste -->
+    <section id="ansicht-liste" class="ansicht" hidden>
       <div id="auftraege-fuer-mich"></div>
+      <p id="antwort-info" class="hinweis hinweis-gut" role="status" hidden></p>
 
       <button id="benachrichtigung-knopf" class="knopf-zweit knopf-klein" type="button" hidden>
-        🔔 Benachrichtigungen einschalten
+        Benachrichtigungen einschalten
       </button>
 
       <form id="eintrag-form" class="eingabe">
         <label>Artikel
-          <input type="text" id="artikel" maxlength="100" autocomplete="off" required>
+          <input type="text" id="artikel" maxlength="100" placeholder="z. B. Äpfel" autocomplete="off" required>
         </label>
-        <label>Menge
-          <input type="text" id="menge" maxlength="30" autocomplete="off">
+        <label class="eingabe-menge">Menge
+          <input type="text" id="menge" maxlength="30" placeholder="1 kg" autocomplete="off">
         </label>
-        <button type="submit" aria-label="Hinzufügen" title="Hinzufügen">+</button>
+        <button type="submit" class="plus-knopf" aria-label="Hinzufügen" title="Hinzufügen">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
       </form>
 
       <table class="tabelle">
         <thead>
           <tr>
-            <th class="spalte-check" title="Gekauft">✓</th>
+            <th class="spalte-check">Gekauft</th>
             <th>Artikel</th>
             <th class="spalte-menge">Menge</th>
-            <th class="spalte-von nur-breit">von</th>
-            <th class="spalte-auftrag nur-breit">Auftrag</th>
             <th class="spalte-loeschen"><span class="unsichtbar">Löschen</span></th>
           </tr>
         </thead>
@@ -75,33 +76,47 @@
       </table>
       <p id="leer" class="leer" hidden>Die Liste ist leer. Trag oben etwas ein.</p>
 
-      <div class="aktionen">
-        <button id="auftrag-oeffnen" type="button">Auftrag senden …</button>
+      <div class="liste-fuss">
+        <span id="zaehler" class="klein"></span>
         <button id="gekaufte-entfernen" class="knopf-zweit" type="button">Gekaufte entfernen</button>
       </div>
+    </section>
 
-      <section id="auftrag-panel" class="panel" hidden>
-        <h2>Auftrag senden</h2>
-        <label class="auftrag-an">An:
-          <select id="auftrag-an"></select>
-        </label>
-        <p>Was soll gekauft werden?</p>
-        <div id="auftrag-artikel" class="auftrag-artikel"></div>
-        <div class="aktionen">
-          <button id="auftrag-senden" type="button">Senden</button>
-          <button id="auftrag-abbrechen" class="knopf-zweit" type="button">Abbrechen</button>
+    <!-- Ansicht 2: Auftrag senden -->
+    <section id="ansicht-auftrag" class="ansicht" hidden>
+      <div id="auftrag-formular">
+        <h2>An wen?</h2>
+        <div id="auftrag-personen" class="personen-wahl"></div>
+
+        <h2>Was soll gekauft werden?</h2>
+        <div id="auftrag-artikel" class="karte auftrag-artikel"></div>
+        <p class="klein">Nur offene Artikel. Gekaufte kann man nicht verschicken.</p>
+
+        <button id="auftrag-senden" class="knopf-gross" type="button">Senden</button>
+      </div>
+
+      <div id="auftrag-gesendet" class="karte bestaetigung" role="status" hidden>
+        <div class="haken" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
         </div>
-      </section>
+        <h2>Auftrag gesendet</h2>
+        <p id="auftrag-gesendet-text"></p>
+        <p><span class="pill pill-offen">… offen</span> wartet auf Antwort</p>
+        <div class="aktionen">
+          <button id="auftrag-neu" class="knopf-zweit" type="button">Neuer Auftrag</button>
+          <button id="zur-uebersicht" type="button">Zur Übersicht</button>
+        </div>
+      </div>
 
       <section class="gesendet">
-        <h2>Meine gesendeten Aufträge</h2>
+        <h2>Zuletzt gesendet</h2>
         <ul id="gesendet-liste"></ul>
         <p id="gesendet-leer" class="leer">Noch keine Aufträge gesendet.</p>
       </section>
     </section>
 
-    <!-- Übersicht: alle Personen und alle Aufträge -->
-    <section id="uebersicht" hidden>
+    <!-- Ansicht 3: Übersicht -->
+    <section id="ansicht-uebersicht" class="ansicht" hidden>
       <h2>Familie</h2>
       <div id="personen" class="personen"></div>
 
@@ -109,9 +124,7 @@
       <table class="tabelle">
         <thead>
           <tr>
-            <th class="spalte-zeit nur-breit">Wann</th>
-            <th class="spalte-person">von</th>
-            <th class="spalte-person">an</th>
+            <th class="spalte-route">Wer → wem</th>
             <th>Artikel</th>
             <th class="spalte-status">Status</th>
           </tr>
@@ -121,6 +134,36 @@
       <p id="alle-auftraege-leer" class="leer">Noch keine Aufträge.</p>
     </section>
   </main>
+
+  <!-- Navigation unten -->
+  <nav id="navigation" class="navigation" aria-label="Bereiche" hidden>
+    <div class="navigation-innen">
+      <button type="button" data-ansicht="liste">
+        <span class="icon-rahmen">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>
+          <span id="badge" class="badge" hidden></span>
+        </span>
+        Liste
+      </button>
+      <button type="button" data-ansicht="auftrag">
+        <span class="icon-rahmen">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </span>
+        Auftrag
+      </button>
+      <button type="button" data-ansicht="uebersicht">
+        <span class="icon-rahmen">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+        </span>
+        Übersicht
+      </button>
+    </div>
+  </nav>
+
+  <!-- Vorlage für den Löschen-Knopf in jeder Zeile -->
+  <template id="icon-loeschen">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+  </template>
 
   <script src="app.js"></script>
 </body>

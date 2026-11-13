@@ -3,17 +3,26 @@
   --hintergrund: #f4f5f7;
   --flaeche: #ffffff;
   --text: #1f2328;
-  --text-leise: #646b73;
-  --rand: #d9dce1;
+  --text-leise: #4f565e;
+  --rand: #dfe2e6;
+  --rand-fein: #eceef1;
+  --feld-rand: #c3c8ce;
   --akzent: #1f7a4d;
   --akzent-text: #ffffff;
-  --gekauft: #eef0f2;
+  --akzent-hell: #e3f3ea;
+  --akzent-dunkel: #14532d;
+  --gekauft: #f1f2f4;
   --auftrag: #fff4d6;
-  --auftrag-rand: #e2b93b;
+  --auftrag-rand: #c99a1e;
+  --auftrag-text: #3b2f05;
   --fehler: #fde7e7;
   --fehler-rand: #d64545;
-  --gut: #1f7a4d;
-  --schlecht: #c0392b;
+  --pill-offen: #eceef1;
+  --pill-offen-text: #3d434a;
+  --pill-ja: #e3f3ea;
+  --pill-ja-text: #14532d;
+  --pill-nein: #fde7e7;
+  --pill-nein-text: #8a1c1c;
 }
 
 /* Dunkler Modus, wenn das Gerät so eingestellt ist */
@@ -22,17 +31,26 @@
     --hintergrund: #16181b;
     --flaeche: #202327;
     --text: #e6e8eb;
-    --text-leise: #9aa1a9;
+    --text-leise: #a3aab2;
     --rand: #353a40;
+    --rand-fein: #2b2f34;
+    --feld-rand: #4a5058;
     --akzent: #2f9e66;
     --akzent-text: #ffffff;
+    --akzent-hell: #1d3a2b;
+    --akzent-dunkel: #9be0bb;
     --gekauft: #1a1c1f;
     --auftrag: #3a3115;
     --auftrag-rand: #a8862a;
+    --auftrag-text: #f3e6bf;
     --fehler: #3b1e1e;
     --fehler-rand: #c05050;
-    --gut: #4cc38a;
-    --schlecht: #ef6b6b;
+    --pill-offen: #33383e;
+    --pill-offen-text: #d5d9de;
+    --pill-ja: #1d3a2b;
+    --pill-ja-text: #9be0bb;
+    --pill-nein: #3d1f1f;
+    --pill-nein-text: #f2a7a7;
   }
 }
 
@@ -53,7 +71,9 @@ body {
 }
 
 h2 {
-  font-size: 1.15rem;
+  margin: 1.25rem 0 0.6rem;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 /* ---------- Kopfzeile ---------- */
@@ -62,34 +82,38 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem 1rem;
+  padding-top: max(1.25rem, env(safe-area-inset-top));
   background: var(--akzent);
   color: var(--akzent-text);
 }
 
 .kopf h1 {
   margin: 0;
-  font-size: 1.25rem;
-}
-
-.kopf-knoepfe {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  font-size: 1.3rem;
+  line-height: 1.2;
 }
 
 .kopf .ich {
+  flex: 0 0 auto;
+  padding: 0 1rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
   background: transparent;
   color: inherit;
-  border: 1px solid currentColor;
+  font-weight: 600;
 }
 
 main {
-  max-width: 52rem;
+  max-width: 40rem;
   margin: 0 auto;
   padding: 1rem;
+}
+
+/* Platz lassen, damit die Navigation unten nichts verdeckt */
+body.mit-navigation main {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom));
 }
 
 /* ---------- Knöpfe und Eingabefelder ---------- */
@@ -99,14 +123,22 @@ button {
   min-height: 2.75rem;
   padding: 0.5rem 1rem;
   border: 1px solid var(--akzent);
-  border-radius: 0.5rem;
+  border-radius: 0.625rem;
   background: var(--akzent);
   color: var(--akzent-text);
+  font-weight: 600;
   cursor: pointer;
 }
 
 button:hover {
   filter: brightness(1.08);
+}
+
+button:disabled {
+  background: #8a9097;
+  border-color: #8a9097;
+  cursor: not-allowed;
+  filter: none;
 }
 
 .knopf-zweit {
@@ -120,41 +152,58 @@ button:hover {
   font-size: 0.9rem;
 }
 
-input[type="text"],
-select {
+.knopf-gross {
   width: 100%;
-  min-height: 2.75rem;
-  padding: 0.5rem 0.6rem;
+  min-height: 3.25rem;
+  margin-top: 1rem;
+  border-radius: 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+input[type="text"] {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 0.75rem;
   font: inherit;
+  font-size: 1rem;
   color: var(--text);
   background: var(--flaeche);
-  border: 1px solid var(--rand);
-  border-radius: 0.5rem;
+  border: 1px solid var(--feld-rand);
+  border-radius: 0.625rem;
 }
 
 input[type="checkbox"] {
   width: 1.6rem;
   height: 1.6rem;
   margin: 0;
+  flex: 0 0 auto;
   accent-color: var(--akzent);
   cursor: pointer;
+}
+
+.karte {
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: 0.875rem;
+  overflow: hidden;
 }
 
 /* ---------- Hinweise ---------- */
 
 .hinweis {
-  margin: 0 0 0.75rem;
-  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+  padding: 0.875rem 1rem;
   border: 1px solid;
-  border-radius: 0.5rem;
+  border-radius: 0.875rem;
 }
 
 .hinweis.oben {
-  max-width: 50rem;
+  max-width: 38rem;
   margin: 0.75rem auto 0;
 }
 
-@media (max-width: 52rem) {
+@media (max-width: 40rem) {
   .hinweis.oben {
     margin: 0.75rem 1rem 0;
   }
@@ -165,19 +214,34 @@ input[type="checkbox"] {
   border-color: var(--fehler-rand);
 }
 
+.hinweis-gut {
+  background: var(--akzent-hell);
+  border-color: transparent;
+  color: var(--akzent-dunkel);
+}
+
 .hinweis-auftrag {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.75rem;
   background: var(--auftrag);
   border-color: var(--auftrag-rand);
+  color: var(--auftrag-text);
+}
+
+.hinweis-auftrag p {
+  margin: 0;
+  font-size: 1rem;
 }
 
 .hinweis-auftrag .knoepfe {
   display: flex;
   gap: 0.5rem;
+}
+
+.hinweis-auftrag .knoepfe button {
+  flex: 1 1 0;
+  min-height: 3rem;
 }
 
 /* ---------- Erster Start und Namensauswahl ---------- */
@@ -190,97 +254,127 @@ input[type="checkbox"] {
 
 .auswahl-knoepfe {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
 .auswahl-knoepfe button {
-  padding: 1rem;
+  min-height: 4rem;
   font-size: 1.2rem;
 }
 
-/* ---------- Eingabezeile ---------- */
+/* ---------- Liste ---------- */
 
 .eingabe {
-  display: grid;
-  grid-template-columns: 1fr 8rem auto;
-  align-items: end;
+  display: flex;
+  align-items: flex-end;
   gap: 0.5rem;
-  margin: 0.5rem 0 1rem;
+  margin-bottom: 1rem;
 }
 
 .eingabe label {
   display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
   flex-direction: column;
   gap: 0.25rem;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-leise);
 }
 
-.eingabe button {
-  padding: 0 1.1rem;
-  font-size: 1.5rem;
-  line-height: 1;
+.eingabe .eingabe-menge {
+  flex: 0 0 5.5rem;
 }
 
-/* ---------- Tabelle ---------- */
+.plus-knopf {
+  flex: 0 0 3rem;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .tabelle {
   width: 100%;
   table-layout: fixed;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: var(--flaeche);
   border: 1px solid var(--rand);
+  border-radius: 0.875rem;
+  overflow: hidden;
 }
 
 .tabelle th,
 .tabelle td {
-  padding: 0.55rem 0.5rem;
+  padding: 0.5rem;
   text-align: left;
   vertical-align: middle;
-  border-bottom: 1px solid var(--rand);
+  border-bottom: 1px solid var(--rand-fein);
   overflow-wrap: anywhere;
 }
 
+.tabelle tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .tabelle th {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--text-leise);
+  border-bottom-color: var(--rand);
+}
+
+.tabelle td {
+  height: 4rem;
 }
 
 .tabelle .spalte-check {
-  width: 3rem;
+  width: 4rem;
   text-align: center;
 }
 
 .spalte-menge {
-  width: 7rem;
-}
-
-.spalte-von {
-  width: 7.5rem;
-}
-
-.spalte-auftrag {
-  width: 8rem;
+  width: 5rem;
 }
 
 .spalte-loeschen {
   width: 3rem;
 }
 
+.spalte-route {
+  width: 7rem;
+}
+
+.spalte-status {
+  width: 7.5rem;
+}
+
+.artikel-name {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
 .tabelle tr.gekauft td {
-  color: var(--text-leise);
   background: var(--gekauft);
+  color: var(--text-leise);
 }
 
 .tabelle tr.gekauft .artikel-name {
+  font-weight: 400;
   text-decoration: line-through;
 }
 
 .loeschen-knopf {
-  min-height: auto;
-  padding: 0.3rem 0.4rem;
-  font-size: 1.1rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   color: var(--text-leise);
@@ -292,57 +386,96 @@ input[type="checkbox"] {
   color: var(--text-leise);
 }
 
-.nur-schmal {
-  display: none;
-}
-
-/* Auf dem Handy: weniger Spalten, die Infos stehen klein unter dem Artikel */
-@media (max-width: 600px) {
-  .nur-breit {
-    display: none;
-  }
-
-  .nur-schmal {
-    display: block;
-  }
-
-  .eingabe {
-    grid-template-columns: 1fr 5.5rem auto;
-  }
-
-  .spalte-menge {
-    width: 4.5rem;
-  }
-}
-
-/* ---------- Aktionen, Auftrag senden, gesendete Aufträge ---------- */
-
-.aktionen {
+.liste-fuss {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* ---------- Auftrag senden ---------- */
+
+.personen-wahl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
   gap: 0.5rem;
-  margin: 1rem 0;
 }
 
-.panel {
-  padding: 0 1rem;
+.personen-wahl button {
+  min-height: 3.25rem;
+  border: 2px solid var(--feld-rand);
+  border-radius: 0.75rem;
   background: var(--flaeche);
-  border: 1px solid var(--rand);
-  border-radius: 0.5rem;
+  color: var(--text);
+  font-size: 1rem;
 }
 
-.auftrag-an {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  max-width: 16rem;
+.personen-wahl button[aria-pressed="true"] {
+  border-color: var(--akzent);
+  background: var(--akzent);
+  color: var(--akzent-text);
 }
 
 .auftrag-artikel label {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.35rem 0;
+  gap: 0.875rem;
+  min-height: 3.75rem;
+  padding: 0.375rem 1rem;
+  border-bottom: 1px solid var(--rand-fein);
+  cursor: pointer;
+}
+
+.auftrag-artikel label:last-child {
+  border-bottom: none;
+}
+
+.auftrag-artikel .name {
+  flex: 1 1 auto;
+  font-weight: 600;
+}
+
+.auftrag-artikel .menge {
+  color: var(--text-leise);
+}
+
+.auftrag-artikel + .klein {
+  margin-top: 0.5rem;
+}
+
+.bestaetigung {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+}
+
+.bestaetigung h2,
+.bestaetigung p {
+  margin: 0;
+}
+
+.haken {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  background: var(--akzent-hell);
+  color: var(--akzent-dunkel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.aktionen button {
+  flex: 1 1 9rem;
+  min-height: 3rem;
 }
 
 .gesendet ul {
@@ -353,75 +486,138 @@ input[type="checkbox"] {
 
 .gesendet li {
   margin-bottom: 0.5rem;
-  padding: 0.6rem 0.8rem;
+  padding: 0.625rem 0.875rem;
   background: var(--flaeche);
   border: 1px solid var(--rand);
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
 }
 
-.status {
-  font-weight: 600;
+/* ---------- Status-Kennzeichen ---------- */
+
+.pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.status-angenommen {
-  color: var(--gut);
+.pill-offen {
+  background: var(--pill-offen);
+  color: var(--pill-offen-text);
 }
 
-.status-abgelehnt {
-  color: var(--schlecht);
+.pill-angenommen {
+  background: var(--pill-ja);
+  color: var(--pill-ja-text);
 }
 
-.status-offen {
-  color: var(--text-leise);
+.pill-abgelehnt {
+  background: var(--pill-nein);
+  color: var(--pill-nein-text);
 }
 
 /* ---------- Übersicht ---------- */
 
 .personen {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
 }
 
 .person {
-  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 0.875rem;
   background: var(--flaeche);
   border: 1px solid var(--rand);
-  border-radius: 0.5rem;
+  border-radius: 0.875rem;
 }
 
-.person h3 {
-  margin: 0 0 0.4rem;
-  font-size: 1.05rem;
+.person-kopf {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-weight: 700;
 }
 
-.person p {
-  margin: 0.15rem 0;
-  font-size: 0.9rem;
+.initiale {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 2.25rem;
+  border-radius: 50%;
+  background: var(--akzent-hell);
+  color: var(--akzent-dunkel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.route {
+  display: block;
+  font-weight: 600;
+}
+
+/* ---------- Navigation unten ---------- */
+
+.navigation {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--flaeche);
+  border-top: 1px solid var(--rand);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.navigation-innen {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.navigation button {
+  min-height: 4rem;
+  padding: 0.5rem 0.25rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   color: var(--text-leise);
+  font-size: 0.75rem;
 }
 
-.spalte-zeit {
-  width: 6rem;
+.navigation button[aria-current="page"] {
+  color: var(--akzent);
+  font-weight: 700;
 }
 
-.spalte-person {
-  width: 6rem;
+.icon-rahmen {
+  position: relative;
+  display: flex;
 }
 
-.spalte-status {
-  width: 7rem;
-}
-
-@media (max-width: 600px) {
-  .spalte-person {
-    width: 4.25rem;
-  }
-
-  .spalte-status {
-    width: 6.25rem;
-  }
+.badge {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.7rem;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: #c0392b;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.15rem;
+  text-align: center;
 }
 
 .leer {

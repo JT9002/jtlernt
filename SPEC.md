@@ -94,35 +94,34 @@ Alle Daten liegen in **einer Datei auf dem Server**: `daten.json`. Diese Datei k
 
 ## 5. Oberfläche
 
-Eine einzige Seite. Von oben nach unten:
+Gebaut für das **Smartphone** (am PC dieselbe Ansicht, mittig). Drei Bereiche, zwischen denen man über eine **Leiste unten** wechselt:
 
 ```
-┌──────────────────────────────────────────────────┐
-│  Familien-Einkaufsliste            Ich bin: Jörg │
-├──────────────────────────────────────────────────┤
-│  ⚠ Neuer Auftrag von Anna: Milch, Brot           │
-│                     [ Annehmen ]  [ Ablehnen ]   │
-├──────────────────────────────────────────────────┤
-│  Artikel [____________]  Menge [______]  [ + ]   │
-├──────────────────────────────────────────────────┤
-│  ✓  │ Artikel   │ Menge   │ von   │ Auftrag      │
-│ [ ] │ Butter    │ 1       │ Anna  │              │
-│ [ ] │ Milch     │ 2 Liter │ Jörg  │ → Anna ✔     │
-│ [x] │ ~~Brot~~  │         │ Tim   │              │
-├──────────────────────────────────────────────────┤
-│  [ Auftrag senden an … ▾ ]  [ Gekaufte entfernen ]│
-├──────────────────────────────────────────────────┤
-│  Meine gesendeten Aufträge:                      │
-│  an Anna: Milch, Brot  → angenommen              │
-└──────────────────────────────────────────────────┘
+┌────────────────────────────┐
+│ Einkaufsliste     Jörg ▾   │
+├────────────────────────────┤
+│ Neuer Auftrag von Anna     │
+│ Brot, Butter               │
+│ [ Annehmen ] [ Ablehnen ]  │
+│                            │
+│ Artikel [_______] [___] [+]│
+│ ┌────────────────────────┐ │
+│ │[ ] Butter      250 g 🗑│ │
+│ │    von Tim · 15:42     │ │
+│ │[x] ~~Äpfel~~   1 kg  🗑│ │
+│ └────────────────────────┘ │
+│ 3 offen · 1 gekauft        │
+│          [Gekaufte entf.]  │
+├────────────────────────────┤
+│  Liste   Auftrag  Übersicht│
+└────────────────────────────┘
 ```
 
-- **Kopfzeile:** Titel und der eigene Name. Ein Klick auf den Namen wechselt die Person.
-- **Auftrags-Hinweis:** erscheint nur, wenn ein offener Auftrag für mich da ist. Er ist farbig hervorgehoben.
-- **Eingabezeile:** Artikel, Menge und ein Knopf zum Hinzufügen.
-- **Tabelle:** Checkbox, Artikel, Menge, eingetragen von, Auftrag. Gekaufte Artikel sind durchgestrichen und grau.
-- **Aktionen:** Auftrag senden und gekaufte Artikel entfernen.
-- **Übersicht:** Ein Knopf „Übersicht“ in der Kopfzeile wechselt zur Übersicht, „Zur Liste“ wechselt zurück.
+- **Kopfzeile:** Titel des Bereichs und der eigene Name. Ein Klick auf den Namen wechselt die Person.
+- **Liste:** Auftrags-Hinweis (nur wenn ein offener Auftrag für mich da ist, farbig), Eingabezeile, Tabelle mit Checkbox, Artikel (darunter klein: von wem, Uhrzeit, Auftrag), Menge und Löschen-Knopf. Gekaufte Artikel sind durchgestrichen und grau.
+- **Auftrag senden:** Person über große Knöpfe wählen, offene Artikel anhaken, „Senden“. Danach eine Bestätigung. Darunter „Zuletzt gesendet“ mit Status.
+- **Übersicht:** Karten für alle Familienmitglieder (gesendet und erhalten) und eine Tabelle mit allen Aufträgen.
+- **Leiste unten:** Liste, Auftrag, Übersicht. Eine rote Zahl an „Liste“ zeigt offene Aufträge für mich.
 - **Einstellungen:** Beim allerersten Start werden die bis zu 4 Namen eingegeben.
 - Die Seite funktioniert **auf dem Handy** (schmaler Bildschirm) genauso wie am PC.
 - Große Checkboxen und Knöpfe, damit man sie auch im Supermarkt gut trifft.

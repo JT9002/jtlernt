@@ -6,13 +6,19 @@
 const INTERVALL_MS = 3000;
 const SPEICHER_NAME = 'einkaufsliste-ich';
 const STATUS_ZEICHEN = { offen: '…', angenommen: '✔', abgelehnt: '✘' };
+const TITEL = { liste: 'Einkaufsliste', auftrag: 'Auftrag senden', uebersicht: 'Übersicht' };
 
 let stand = null; // { mitglieder, eintraege, auftraege } vom Server
 let ich = gespeicherterName();
 let personWechseln = false;
-let ansicht = 'liste'; // 'liste' oder 'uebersicht'
 let ersterAbruf = true;
-const auftragAuswahl = new Set(); // ausgewählte Artikel im Bereich „Auftrag senden“
+let ansicht = 'liste'; // 'liste', 'auftrag' oder 'uebersicht'
+
+// Für die Ansicht „Auftrag senden“
+let auftragAn = null;
+const auftragAuswahl = new Set();
+let auftragGesendet = null; // { an, artikel } nach dem Senden, für die Bestätigung
+
 const bekannteAuftraege = new Set(); // damit jede Benachrichtigung nur einmal kommt
 
 const $ = (id) => document.getElementById(id);
@@ -80,6 +86,17 @@ function meldungAnzeigen(text) {
   }, 5000);
 }
 
+let antwortTimer;
+function antwortInfoAnzeigen(text) {
+  const feld = $('antwort-info');
+  feld.textContent = text;
+  feld.hidden = false;
+  clearTimeout(antwortTimer);
+  antwortTimer = setTimeout(() => {
+    feld.hidden = true;
+  }, 5000);
+}
+
 function standUebernehmen(neu) {
   stand = neu;
   neueAuftraegeMelden();
@@ -128,22 +145,25 @@ function anzeigen() {
   const mitglieder = stand.mitglieder;
   const einrichten = mitglieder.length === 0;
   const auswahl = !einrichten && (personWechseln || !ich || !mitglieder.includes(ich));
-
   const normal = !einrichten && !auswahl;
 
   $('einrichten').hidden = !einrichten;
   $('auswahl').hidden = !auswahl;
-  $('liste').hidden = !normal || ansicht !== 'liste';
-  $('uebersicht').hidden = !normal || ansicht !== 'uebersicht';
+  for (const name of Object.keys(TITEL)) {
+    $(`ansicht-${name}`).hidden = !normal || ansicht !== name;
+  }
+  $('navigation').hidden = !normal;
   $('ich-knopf').hidden = !normal;
-  $('ansicht-knopf').hidden = !normal;
-  $('ansicht-knopf').textContent = ansicht === 'liste' ? 'Übersicht' : 'Zur Liste';
+  $('titel').textContent = normal ? TITEL[ansicht] : 'Einkaufsliste';
+  document.body.classList.toggle('mit-navigation', normal);
 
   if (auswahl) {
     auswahlAnzeigen();
   } else if (normal) {
     $('ich-name').textContent = ich;
+    navigationAnzeigen();
     if (ansicht === 'liste') listeAnzeigen();
+    else if (ansicht === 'auftrag') auftragAnzeigen();
     else uebersichtAnzeigen();
   }
 
@@ -153,48 +173,60 @@ function anzeigen() {
 
 function auswahlAnzeigen() {
   const bereich = $('auswahl-knoepfe');
-  const schluessel = stand.mitglieder.join('|');
-  if (bereich.dataset.namen === schluessel) return; // nichts geändert
-  bereich.dataset.namen = schluessel;
+  const namenListe = stand.mitglieder.join('|');
+  if (bereich.dataset.namen === namenListe) return; // nichts geändert
+  bereich.dataset.namen = namenListe;
   bereich.replaceChildren(
-    ...stand.mitglieder.map((name) => {
-      const knopf = document.createElement('button');
-      knopf.type = 'button';
-      knopf.textContent = name;
-      knopf.addEventListener('click', () => {
+    ...stand.mitglieder.map((name) =>
+      knopf(name, '', () => {
         ich = name;
         nameMerken(name);
         personWechseln = false;
         alleOffenenAlsBekanntMerken();
         anzeigen();
-      });
-      return knopf;
-    }),
+      }),
+    ),
   );
 }
+
+function navigationAnzeigen() {
+  for (const b of document.querySelectorAll('#navigation [data-ansicht]')) {
+    if (b.dataset.ansicht === ansicht) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  }
+  const anzahl = offeneAuftraegeFuerMich().length;
+  $('badge').hidden = anzahl === 0;
+  $('badge').textContent = anzahl;
+}
+
+// ---------- Ansicht 1: Liste ----------
 
 function listeAnzeigen() {
   $('benachrichtigung-knopf').hidden = !(benachrichtigungMoeglich() && Notification.permission === 'default');
   auftraegeFuerMichAnzeigen();
   tabelleAnzeigen();
-  gesendeteAnzeigen();
-  if (!$('auftrag-panel').hidden) auftragArtikelAnzeigen();
+
+  const gekauft = stand.eintraege.filter((e) => e.gekauft).length;
+  $('zaehler').textContent = `${stand.eintraege.length - gekauft} offen · ${gekauft} gekauft`;
 }
 
 function auftraegeFuerMichAnzeigen() {
   $('auftraege-fuer-mich').replaceChildren(
     ...offeneAuftraegeFuerMich().map((auftrag) => {
-      const box = document.createElement('div');
+      const box = document.createElement('section');
       box.className = 'hinweis hinweis-auftrag';
+      box.setAttribute('aria-label', 'Neuer Auftrag');
 
-      const text = document.createElement('span');
-      text.textContent = `⚠ Neuer Auftrag von ${auftrag.von}: ${auftrag.artikel.join(', ')}`;
+      const text = document.createElement('p');
+      const titel = document.createElement('strong');
+      titel.textContent = `Neuer Auftrag von ${auftrag.von}`;
+      text.append(titel, document.createElement('br'), auftrag.artikel.join(', '));
 
-      const knoepfe = document.createElement('span');
+      const knoepfe = document.createElement('div');
       knoepfe.className = 'knoepfe';
       knoepfe.append(
-        knopf('Annehmen', '', () => antworten(auftrag.id, 'angenommen')),
-        knopf('Ablehnen', 'knopf-zweit', () => antworten(auftrag.id, 'abgelehnt')),
+        knopf('Annehmen', '', () => antworten(auftrag, 'angenommen')),
+        knopf('Ablehnen', 'knopf-zweit', () => antworten(auftrag, 'abgelehnt')),
       );
 
       box.append(text, knoepfe);
@@ -221,44 +253,27 @@ function tabelleAnzeigen() {
         anfrage(`/api/eintraege/${encodeURIComponent(e.id)}/gekauft`, { gekauft: box.checked, von: ich });
       });
 
-      // Artikel, darunter (nur auf dem Handy) die weiteren Infos
-      const auftrag = auftragZuEintrag(e.id);
+      // Artikel, darunter klein: wer, wann, Auftrag
       const name = document.createElement('span');
       name.className = 'artikel-name';
       name.textContent = e.artikel;
-      const infoHandy = kleinerText(
-        [`von ${e.von}`, uhrzeit(e.erstelltAm), e.gekauftVon && `gekauft: ${e.gekauftVon}`, auftrag && auftragText(auftrag)]
-          .filter(Boolean)
-          .join(' · '),
-      );
-      infoHandy.classList.add('nur-schmal');
+      const auftrag = auftragZuEintrag(e.id);
+      const info = e.gekauft
+        ? [`gekauft von ${e.gekauftVon || '?'}`]
+        : [`von ${e.von}`, uhrzeit(e.erstelltAm), auftrag && auftragText(auftrag)];
 
-      // Spalte „von“: Name, Uhrzeit, wer gekauft hat
-      const von = document.createElement('td');
-      von.className = 'nur-breit';
-      von.append(e.von, kleinerText(uhrzeit(e.erstelltAm)));
-      if (e.gekauftVon) von.append(kleinerText(`gekauft: ${e.gekauftVon}`));
-
-      // Spalte „Auftrag“
-      const auftragZelle = document.createElement('td');
-      auftragZelle.className = 'nur-breit';
-      if (auftrag) {
-        auftragZelle.textContent = auftragText(auftrag);
-        auftragZelle.title = `Auftrag von ${auftrag.von}: ${auftrag.status}`;
-      }
-
-      const loeschen = knopf('🗑', 'loeschen-knopf', () => {
+      // Löschen-Knopf mit Mülleimer-Symbol
+      const loeschen = knopf('', 'loeschen-knopf', () => {
         if (confirm(`„${e.artikel}“ löschen?`)) anfrage(`/api/eintraege/${encodeURIComponent(e.id)}/loeschen`, {});
       });
+      loeschen.append($('icon-loeschen').content.cloneNode(true));
       loeschen.setAttribute('aria-label', `${e.artikel} löschen`);
       loeschen.title = 'Löschen';
 
       zeile.append(
         zelle('spalte-check', box),
-        zelle('', name, infoHandy),
+        zelle('', name, kleinerText(info.filter(Boolean).join(' · '))),
         zelle('', e.menge),
-        von,
-        auftragZelle,
         zelle('', loeschen),
       );
       return zeile;
@@ -266,20 +281,42 @@ function tabelleAnzeigen() {
   );
 }
 
-function gesendeteAnzeigen() {
-  const meine = stand.auftraege
-    .filter((a) => a.von === ich)
-    .sort((a, b) => b.erstelltAm - a.erstelltAm)
-    .slice(0, 10);
-  $('gesendet-leer').hidden = meine.length > 0;
-  $('gesendet-liste').replaceChildren(
-    ...meine.map((a) => {
-      const punkt = document.createElement('li');
-      const status = document.createElement('span');
-      status.className = `status status-${a.status}`;
-      status.textContent = a.status;
-      punkt.append(`an ${a.an}: ${a.artikel.join(', ')} → `, status, kleinerText(uhrzeit(a.erstelltAm)));
-      return punkt;
+// ---------- Ansicht 2: Auftrag senden ----------
+
+function auftragAnzeigen() {
+  $('auftrag-formular').hidden = Boolean(auftragGesendet);
+  $('auftrag-gesendet').hidden = !auftragGesendet;
+
+  if (auftragGesendet) {
+    $('auftrag-gesendet-text').textContent =
+      `${auftragGesendet.an} soll kaufen: ${auftragGesendet.artikel.join(', ')}.`;
+  } else {
+    personenWahlAnzeigen();
+    auftragArtikelAnzeigen();
+    sendenKnopfAnzeigen();
+  }
+  gesendeteAnzeigen();
+}
+
+function personenWahlAnzeigen() {
+  const andere = stand.mitglieder.filter((name) => name !== ich);
+  if (!andere.includes(auftragAn)) auftragAn = andere[0] || null;
+
+  if (andere.length === 0) {
+    const leer = document.createElement('p');
+    leer.className = 'leer';
+    leer.textContent = 'Es gibt keine anderen Familienmitglieder.';
+    $('auftrag-personen').replaceChildren(leer);
+    return;
+  }
+  $('auftrag-personen').replaceChildren(
+    ...andere.map((name) => {
+      const b = knopf(name, '', () => {
+        auftragAn = name;
+        auftragAnzeigen();
+      });
+      b.setAttribute('aria-pressed', String(name === auftragAn));
+      return b;
     }),
   );
 }
@@ -306,12 +343,43 @@ function auftragArtikelAnzeigen() {
       box.addEventListener('change', () => {
         if (box.checked) auftragAuswahl.add(e.id);
         else auftragAuswahl.delete(e.id);
+        sendenKnopfAnzeigen();
       });
-      label.append(box, e.menge ? `${e.artikel} (${e.menge})` : e.artikel);
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = e.artikel;
+      const menge = document.createElement('span');
+      menge.className = 'menge';
+      menge.textContent = e.menge;
+      label.append(box, name, menge);
       return label;
     }),
   );
 }
+
+function sendenKnopfAnzeigen() {
+  const anzahl = auftragAuswahl.size;
+  const bereit = anzahl > 0 && Boolean(auftragAn);
+  $('auftrag-senden').disabled = !bereit;
+  $('auftrag-senden').textContent = bereit ? `${anzahl} Artikel an ${auftragAn} senden` : 'Bitte Artikel auswählen';
+}
+
+function gesendeteAnzeigen() {
+  const meine = stand.auftraege
+    .filter((a) => a.von === ich)
+    .sort((a, b) => b.erstelltAm - a.erstelltAm)
+    .slice(0, 10);
+  $('gesendet-leer').hidden = meine.length > 0;
+  $('gesendet-liste').replaceChildren(
+    ...meine.map((a) => {
+      const punkt = document.createElement('li');
+      punkt.append(`an ${a.an}: ${a.artikel.join(', ')} `, statusPill(a.status), kleinerText(uhrzeit(a.erstelltAm)));
+      return punkt;
+    }),
+  );
+}
+
+// ---------- Ansicht 3: Übersicht ----------
 
 function uebersichtAnzeigen() {
   const auftraege = [...stand.auftraege].sort((a, b) => b.erstelltAm - a.erstelltAm);
@@ -319,17 +387,23 @@ function uebersichtAnzeigen() {
   // Eine Karte pro Person: wie viele Aufträge gesendet und erhalten
   $('personen').replaceChildren(
     ...stand.mitglieder.map((name) => {
-      const gesendet = auftraege.filter((a) => a.von === name);
-      const erhalten = auftraege.filter((a) => a.an === name);
-
       const karte = document.createElement('div');
       karte.className = 'person';
-      const titel = document.createElement('h3');
-      titel.textContent = name === ich ? `${name} (du)` : name;
+
+      const kopf = document.createElement('div');
+      kopf.className = 'person-kopf';
+      const initiale = document.createElement('span');
+      initiale.className = 'initiale';
+      initiale.setAttribute('aria-hidden', 'true');
+      initiale.textContent = name.charAt(0).toUpperCase();
+      kopf.append(initiale, name === ich ? `${name} (du)` : name);
+
+      const gesendet = auftraege.filter((a) => a.von === name);
+      const erhalten = auftraege.filter((a) => a.an === name);
       karte.append(
-        titel,
-        absatz(`Gesendet: ${gesendet.length}${statusZaehlen(gesendet)}`),
-        absatz(`Erhalten: ${erhalten.length}${statusZaehlen(erhalten)}`),
+        kopf,
+        kleinerText(`Gesendet: ${gesendet.length}${statusZaehlen(gesendet)}`),
+        kleinerText(`Erhalten: ${erhalten.length}${statusZaehlen(erhalten)}`),
       );
       return karte;
     }),
@@ -340,18 +414,13 @@ function uebersichtAnzeigen() {
   $('alle-auftraege').replaceChildren(
     ...auftraege.map((a) => {
       const zeile = document.createElement('tr');
-      const status = document.createElement('span');
-      status.className = `status status-${a.status}`;
-      status.textContent = `${STATUS_ZEICHEN[a.status] || ''} ${a.status}`;
-      const zeitHandy = kleinerText(uhrzeit(a.erstelltAm));
-      zeitHandy.classList.add('nur-schmal');
-
+      const route = document.createElement('span');
+      route.className = 'route';
+      route.textContent = `${a.von} → ${a.an}`;
       zeile.append(
-        zelle('nur-breit', uhrzeit(a.erstelltAm)),
-        zelle('', a.von),
-        zelle('', a.an),
-        zelle('', a.artikel.join(', '), zeitHandy),
-        zelle('', status),
+        zelle('', route, kleinerText(uhrzeit(a.erstelltAm))),
+        zelle('', a.artikel.join(', ')),
+        zelle('', statusPill(a.status)),
       );
       return zeile;
     }),
@@ -368,12 +437,6 @@ function statusZaehlen(auftraege) {
 }
 
 // ---------- Kleine Helfer ----------
-
-function absatz(text) {
-  const p = document.createElement('p');
-  p.textContent = text;
-  return p;
-}
 
 function zelle(klasse, ...inhalt) {
   const td = document.createElement('td');
@@ -398,6 +461,13 @@ function kleinerText(text) {
   return span;
 }
 
+function statusPill(status) {
+  const span = document.createElement('span');
+  span.className = `pill pill-${status}`;
+  span.textContent = `${STATUS_ZEICHEN[status] || ''} ${status}`;
+  return span;
+}
+
 function uhrzeit(zeitpunkt) {
   const datum = new Date(zeitpunkt);
   const heute = new Date().toDateString() === datum.toDateString();
@@ -417,8 +487,20 @@ function auftragText(auftrag) {
   return `→ ${auftrag.an} ${STATUS_ZEICHEN[auftrag.status] || ''}`;
 }
 
-function antworten(id, status) {
-  anfrage(`/api/auftraege/${encodeURIComponent(id)}/antwort`, { status, von: ich });
+async function antworten(auftrag, status) {
+  const ergebnis = await anfrage(`/api/auftraege/${encodeURIComponent(auftrag.id)}/antwort`, { status, von: ich });
+  if (ergebnis) {
+    antwortInfoAnzeigen(
+      `Du hast den Auftrag ${status === 'angenommen' ? 'angenommen' : 'abgelehnt'}. ${auftrag.von} sieht das gleich.`,
+    );
+  }
+}
+
+function wechseln(neueAnsicht) {
+  if (neueAnsicht !== 'auftrag') auftragGesendet = null;
+  ansicht = neueAnsicht;
+  anzeigen();
+  window.scrollTo(0, 0);
 }
 
 // ---------- Knöpfe und Formulare ----------
@@ -431,16 +513,13 @@ $('einrichten-form').addEventListener('submit', (ereignis) => {
 
 $('ich-knopf').addEventListener('click', () => {
   personWechseln = true;
-  $('auftrag-panel').hidden = true;
+  auftragGesendet = null;
   anzeigen();
 });
 
-$('ansicht-knopf').addEventListener('click', () => {
-  ansicht = ansicht === 'liste' ? 'uebersicht' : 'liste';
-  $('auftrag-panel').hidden = true;
-  anzeigen();
-  window.scrollTo(0, 0);
-});
+for (const b of document.querySelectorAll('#navigation [data-ansicht]')) {
+  b.addEventListener('click', () => wechseln(b.dataset.ansicht));
+}
 
 $('eintrag-form').addEventListener('submit', async (ereignis) => {
   ereignis.preventDefault();
@@ -466,45 +545,26 @@ $('gekaufte-entfernen').addEventListener('click', () => {
   if (confirm(`${anzahl} gekaufte Artikel entfernen?`)) anfrage('/api/gekaufte-entfernen', {});
 });
 
-$('auftrag-oeffnen').addEventListener('click', () => {
-  const andere = stand.mitglieder.filter((name) => name !== ich);
-  if (andere.length === 0) {
-    meldungAnzeigen('Es gibt keine anderen Familienmitglieder.');
-    return;
-  }
-  $('auftrag-an').replaceChildren(
-    ...andere.map((name) => {
-      const option = document.createElement('option');
-      option.value = name;
-      option.textContent = name;
-      return option;
-    }),
-  );
-  auftragAuswahl.clear();
-  auftragArtikelAnzeigen();
-  $('auftrag-panel').hidden = false;
-  $('auftrag-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-});
-
-$('auftrag-abbrechen').addEventListener('click', () => {
-  $('auftrag-panel').hidden = true;
-});
-
 $('auftrag-senden').addEventListener('click', async () => {
-  if (auftragAuswahl.size === 0) {
-    meldungAnzeigen('Bitte mindestens einen Artikel auswählen.');
-    return;
-  }
-  const ergebnis = await anfrage('/api/auftraege', {
-    von: ich,
-    an: $('auftrag-an').value,
-    eintraege: [...auftragAuswahl],
-  });
+  if (auftragAuswahl.size === 0 || !auftragAn) return;
+  const ids = [...auftragAuswahl];
+  const artikel = ids.map((id) => stand.eintraege.find((e) => e.id === id)?.artikel).filter(Boolean);
+  const an = auftragAn;
+  const ergebnis = await anfrage('/api/auftraege', { von: ich, an, eintraege: ids });
   if (ergebnis) {
     auftragAuswahl.clear();
-    $('auftrag-panel').hidden = true;
+    auftragGesendet = { an, artikel };
+    anzeigen();
+    window.scrollTo(0, 0);
   }
 });
+
+$('auftrag-neu').addEventListener('click', () => {
+  auftragGesendet = null;
+  anzeigen();
+});
+
+$('zur-uebersicht').addEventListener('click', () => wechseln('uebersicht'));
 
 $('benachrichtigung-knopf').addEventListener('click', async () => {
   await Notification.requestPermission();
