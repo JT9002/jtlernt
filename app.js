@@ -10,6 +10,7 @@ const STATUS_ZEICHEN = { offen: '…', angenommen: '✔', abgelehnt: '✘' };
 let stand = null; // { mitglieder, eintraege, auftraege } vom Server
 let ich = gespeicherterName();
 let personWechseln = false;
+let ansicht = 'liste'; // 'liste' oder 'uebersicht'
 let ersterAbruf = true;
 const auftragAuswahl = new Set(); // ausgewählte Artikel im Bereich „Auftrag senden“
 const bekannteAuftraege = new Set(); // damit jede Benachrichtigung nur einmal kommt
@@ -128,13 +129,23 @@ function anzeigen() {
   const einrichten = mitglieder.length === 0;
   const auswahl = !einrichten && (personWechseln || !ich || !mitglieder.includes(ich));
 
+  const normal = !einrichten && !auswahl;
+
   $('einrichten').hidden = !einrichten;
   $('auswahl').hidden = !auswahl;
-  $('liste').hidden = einrichten || auswahl;
-  $('ich-knopf').hidden = einrichten || auswahl;
+  $('liste').hidden = !normal || ansicht !== 'liste';
+  $('uebersicht').hidden = !normal || ansicht !== 'uebersicht';
+  $('ich-knopf').hidden = !normal;
+  $('ansicht-knopf').hidden = !normal;
+  $('ansicht-knopf').textContent = ansicht === 'liste' ? 'Übersicht' : 'Zur Liste';
 
-  if (auswahl) auswahlAnzeigen();
-  else if (!einrichten) listeAnzeigen();
+  if (auswahl) {
+    auswahlAnzeigen();
+  } else if (normal) {
+    $('ich-name').textContent = ich;
+    if (ansicht === 'liste') listeAnzeigen();
+    else uebersichtAnzeigen();
+  }
 
   const anzahl = offeneAuftraegeFuerMich().length;
   document.title = anzahl > 0 ? `(${anzahl}) Einkaufsliste` : 'Einkaufsliste';
@@ -163,7 +174,6 @@ function auswahlAnzeigen() {
 }
 
 function listeAnzeigen() {
-  $('ich-name').textContent = ich;
   $('benachrichtigung-knopf').hidden = !(benachrichtigungMoeglich() && Notification.permission === 'default');
   auftraegeFuerMichAnzeigen();
   tabelleAnzeigen();
@@ -303,7 +313,67 @@ function auftragArtikelAnzeigen() {
   );
 }
 
+function uebersichtAnzeigen() {
+  const auftraege = [...stand.auftraege].sort((a, b) => b.erstelltAm - a.erstelltAm);
+
+  // Eine Karte pro Person: wie viele Aufträge gesendet und erhalten
+  $('personen').replaceChildren(
+    ...stand.mitglieder.map((name) => {
+      const gesendet = auftraege.filter((a) => a.von === name);
+      const erhalten = auftraege.filter((a) => a.an === name);
+
+      const karte = document.createElement('div');
+      karte.className = 'person';
+      const titel = document.createElement('h3');
+      titel.textContent = name === ich ? `${name} (du)` : name;
+      karte.append(
+        titel,
+        absatz(`Gesendet: ${gesendet.length}${statusZaehlen(gesendet)}`),
+        absatz(`Erhalten: ${erhalten.length}${statusZaehlen(erhalten)}`),
+      );
+      return karte;
+    }),
+  );
+
+  // Tabelle mit allen Aufträgen, neueste zuerst
+  $('alle-auftraege-leer').hidden = auftraege.length > 0;
+  $('alle-auftraege').replaceChildren(
+    ...auftraege.map((a) => {
+      const zeile = document.createElement('tr');
+      const status = document.createElement('span');
+      status.className = `status status-${a.status}`;
+      status.textContent = `${STATUS_ZEICHEN[a.status] || ''} ${a.status}`;
+      const zeitHandy = kleinerText(uhrzeit(a.erstelltAm));
+      zeitHandy.classList.add('nur-schmal');
+
+      zeile.append(
+        zelle('nur-breit', uhrzeit(a.erstelltAm)),
+        zelle('', a.von),
+        zelle('', a.an),
+        zelle('', a.artikel.join(', '), zeitHandy),
+        zelle('', status),
+      );
+      return zeile;
+    }),
+  );
+}
+
+// z. B. " (1 offen, 2 angenommen)", oder nichts, wenn es keine Aufträge gibt
+function statusZaehlen(auftraege) {
+  const teile = ['offen', 'angenommen', 'abgelehnt']
+    .map((s) => [s, auftraege.filter((a) => a.status === s).length])
+    .filter(([, anzahl]) => anzahl > 0)
+    .map(([s, anzahl]) => `${anzahl} ${s}`);
+  return teile.length ? ` (${teile.join(', ')})` : '';
+}
+
 // ---------- Kleine Helfer ----------
+
+function absatz(text) {
+  const p = document.createElement('p');
+  p.textContent = text;
+  return p;
+}
 
 function zelle(klasse, ...inhalt) {
   const td = document.createElement('td');
@@ -363,6 +433,13 @@ $('ich-knopf').addEventListener('click', () => {
   personWechseln = true;
   $('auftrag-panel').hidden = true;
   anzeigen();
+});
+
+$('ansicht-knopf').addEventListener('click', () => {
+  ansicht = ansicht === 'liste' ? 'uebersicht' : 'liste';
+  $('auftrag-panel').hidden = true;
+  anzeigen();
+  window.scrollTo(0, 0);
 });
 
 $('eintrag-form').addEventListener('submit', async (ereignis) => {

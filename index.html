@@ -9,7 +9,10 @@
 <body>
   <header class="kopf">
     <h1>Familien-Einkaufsliste</h1>
-    <button id="ich-knopf" class="ich" type="button" hidden>Ich bin: <strong id="ich-name"></strong> ▾</button>
+    <div class="kopf-knoepfe">
+      <button id="ansicht-knopf" class="ich" type="button" hidden>Übersicht</button>
+      <button id="ich-knopf" class="ich" type="button" hidden>Ich bin: <strong id="ich-name"></strong> ▾</button>
+    </div>
   </header>
 
   <div id="verbindung" class="hinweis hinweis-fehler oben" hidden>
@@ -95,6 +98,27 @@
         <ul id="gesendet-liste"></ul>
         <p id="gesendet-leer" class="leer">Noch keine Aufträge gesendet.</p>
       </section>
+    </section>
+
+    <!-- Übersicht: alle Personen und alle Aufträge -->
+    <section id="uebersicht" hidden>
+      <h2>Familie</h2>
+      <div id="personen" class="personen"></div>
+
+      <h2>Alle Aufträge</h2>
+      <table class="tabelle">
+        <thead>
+          <tr>
+            <th class="spalte-zeit nur-breit">Wann</th>
+            <th class="spalte-person">von</th>
+            <th class="spalte-person">an</th>
+            <th>Artikel</th>
+            <th class="spalte-status">Status</th>
+          </tr>
+        </thead>
+        <tbody id="alle-auftraege"></tbody>
+      </table>
+      <p id="alle-auftraege-leer" class="leer">Noch keine Aufträge.</p>
     </section>
   </main>
 

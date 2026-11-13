@@ -74,6 +74,12 @@ h2 {
   font-size: 1.25rem;
 }
 
+.kopf-knoepfe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .kopf .ich {
   background: transparent;
   color: inherit;
@@ -367,6 +373,55 @@ input[type="checkbox"] {
 
 .status-offen {
   color: var(--text-leise);
+}
+
+/* ---------- Übersicht ---------- */
+
+.personen {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.person {
+  padding: 0.75rem 1rem;
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: 0.5rem;
+}
+
+.person h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.person p {
+  margin: 0.15rem 0;
+  font-size: 0.9rem;
+  color: var(--text-leise);
+}
+
+.spalte-zeit {
+  width: 6rem;
+}
+
+.spalte-person {
+  width: 6rem;
+}
+
+.spalte-status {
+  width: 7rem;
+}
+
+@media (max-width: 600px) {
+  .spalte-person {
+    width: 4.25rem;
+  }
+
+  .spalte-status {
+    width: 6.25rem;
+  }
 }
 
 .leer {

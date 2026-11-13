@@ -38,6 +38,7 @@ Die App soll **in einer Runde baubar** sein. Deshalb ist der Umfang bewusst klei
 | M9 | **Status sehen:** Der Absender sieht, ob der Auftrag offen, angenommen oder abgelehnt ist. |
 | M10 | **Erledigte löschen:** Ein Knopf „Gekaufte entfernen“ löscht alle abgehakten Artikel aus der Liste. |
 | M11 | **Daten bleiben erhalten:** Nach einem Neustart von Server oder Browser ist die Liste noch da. |
+| M12 | **Übersicht:** Eine eigene Ansicht zeigt alle Familienmitglieder (wie viele Aufträge gesendet und erhalten) und eine Tabelle mit allen Aufträgen: wann, von wem, an wen, welche Artikel, Status. |
 
 ### Soll (wenn Zeit ist, in dieser Runde)
 
@@ -121,6 +122,7 @@ Eine einzige Seite. Von oben nach unten:
 - **Eingabezeile:** Artikel, Menge und ein Knopf zum Hinzufügen.
 - **Tabelle:** Checkbox, Artikel, Menge, eingetragen von, Auftrag. Gekaufte Artikel sind durchgestrichen und grau.
 - **Aktionen:** Auftrag senden und gekaufte Artikel entfernen.
+- **Übersicht:** Ein Knopf „Übersicht“ in der Kopfzeile wechselt zur Übersicht, „Zur Liste“ wechselt zurück.
 - **Einstellungen:** Beim allerersten Start werden die bis zu 4 Namen eingegeben.
 - Die Seite funktioniert **auf dem Handy** (schmaler Bildschirm) genauso wie am PC.
 - Große Checkboxen und Knöpfe, damit man sie auch im Supermarkt gut trifft.
@@ -170,3 +172,4 @@ Die App ist fertig, wenn alle Punkte erfüllt sind:
 12. [ ] Die Seite ist auf einem Handy-Bildschirm gut bedienbar, ohne seitliches Scrollen.
 13. [ ] Wenn der Server nicht erreichbar ist, zeigt die App „Keine Verbindung“.
 14. [ ] Im Code gibt es keine externen Bibliotheken und keine Passwörter oder Schlüssel.
+15. [ ] In der Übersicht stehen alle Familienmitglieder und alle Aufträge mit Absender, Empfänger, Artikeln und Status. Ein neuer Auftrag erscheint dort innerhalb von 3 Sekunden.
