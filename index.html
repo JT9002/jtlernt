@@ -3,10 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hallo</title>
+  <title>Einkaufsliste</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hallo</h1>
-  <p>Was kann ich für dich tun?</p>
+  <header class="kopf">
+    <h1>Familien-Einkaufsliste</h1>
+    <button id="ich-knopf" class="ich" type="button" hidden>Ich bin: <strong id="ich-name"></strong> ▾</button>
+  </header>
+
+  <div id="verbindung" class="hinweis hinweis-fehler oben" hidden>
+    Keine Verbindung zum Server. Ich versuche es weiter …
+  </div>
+  <div id="meldung" class="hinweis hinweis-fehler oben" role="alert" hidden></div>
+
+  <main>
+    <p id="laden" class="leer">Lade …</p>
+
+    <!-- Beim allerersten Start: Namen festlegen -->
+    <section id="einrichten" hidden>
+      <h2>Willkommen!</h2>
+      <p>Wer gehört zur Familie? Trag bis zu 4 Namen ein.</p>
+      <form id="einrichten-form" class="einrichten-form">
+        <input type="text" name="name" maxlength="30" placeholder="Name 1" autocomplete="off" required>
+        <input type="text" name="name" maxlength="30" placeholder="Name 2" autocomplete="off">
+        <input type="text" name="name" maxlength="30" placeholder="Name 3" autocomplete="off">
+        <input type="text" name="name" maxlength="30" placeholder="Name 4" autocomplete="off">
+        <button type="submit">Speichern</button>
+      </form>
+    </section>
+
+    <!-- Wer benutzt dieses Gerät? -->
+    <section id="auswahl" hidden>
+      <h2>Wer bist du?</h2>
+      <div id="auswahl-knoepfe" class="auswahl-knoepfe"></div>
+    </section>
+
+    <!-- Die eigentliche Liste -->
+    <section id="liste" hidden>
+      <div id="auftraege-fuer-mich"></div>
+
+      <button id="benachrichtigung-knopf" class="knopf-zweit knopf-klein" type="button" hidden>
+        🔔 Benachrichtigungen einschalten
+      </button>
+
+      <form id="eintrag-form" class="eingabe">
+        <label>Artikel
+          <input type="text" id="artikel" maxlength="100" autocomplete="off" required>
+        </label>
+        <label>Menge
+          <input type="text" id="menge" maxlength="30" autocomplete="off">
+        </label>
+        <button type="submit" aria-label="Hinzufügen" title="Hinzufügen">+</button>
+      </form>
+
+      <table class="tabelle">
+        <thead>
+          <tr>
+            <th class="spalte-check" title="Gekauft">✓</th>
+            <th>Artikel</th>
+            <th class="spalte-menge">Menge</th>
+            <th class="spalte-von nur-breit">von</th>
+            <th class="spalte-auftrag nur-breit">Auftrag</th>
+            <th class="spalte-loeschen"><span class="unsichtbar">Löschen</span></th>
+          </tr>
+        </thead>
+        <tbody id="tabelle-inhalt"></tbody>
+      </table>
+      <p id="leer" class="leer" hidden>Die Liste ist leer. Trag oben etwas ein.</p>
+
+      <div class="aktionen">
+        <button id="auftrag-oeffnen" type="button">Auftrag senden …</button>
+        <button id="gekaufte-entfernen" class="knopf-zweit" type="button">Gekaufte entfernen</button>
+      </div>
+
+      <section id="auftrag-panel" class="panel" hidden>
+        <h2>Auftrag senden</h2>
+        <label class="auftrag-an">An:
+          <select id="auftrag-an"></select>
+        </label>
+        <p>Was soll gekauft werden?</p>
+        <div id="auftrag-artikel" class="auftrag-artikel"></div>
+        <div class="aktionen">
+          <button id="auftrag-senden" type="button">Senden</button>
+          <button id="auftrag-abbrechen" class="knopf-zweit" type="button">Abbrechen</button>
+        </div>
+      </section>
+
+      <section class="gesendet">
+        <h2>Meine gesendeten Aufträge</h2>
+        <ul id="gesendet-liste"></ul>
+        <p id="gesendet-leer" class="leer">Noch keine Aufträge gesendet.</p>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
 </body>
 </html>

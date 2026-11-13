@@ -1,0 +1,386 @@
+/* Farben an einer Stelle, damit man sie leicht ändern kann */
+:root {
+  --hintergrund: #f4f5f7;
+  --flaeche: #ffffff;
+  --text: #1f2328;
+  --text-leise: #646b73;
+  --rand: #d9dce1;
+  --akzent: #1f7a4d;
+  --akzent-text: #ffffff;
+  --gekauft: #eef0f2;
+  --auftrag: #fff4d6;
+  --auftrag-rand: #e2b93b;
+  --fehler: #fde7e7;
+  --fehler-rand: #d64545;
+  --gut: #1f7a4d;
+  --schlecht: #c0392b;
+}
+
+/* Dunkler Modus, wenn das Gerät so eingestellt ist */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hintergrund: #16181b;
+    --flaeche: #202327;
+    --text: #e6e8eb;
+    --text-leise: #9aa1a9;
+    --rand: #353a40;
+    --akzent: #2f9e66;
+    --akzent-text: #ffffff;
+    --gekauft: #1a1c1f;
+    --auftrag: #3a3115;
+    --auftrag-rand: #a8862a;
+    --fehler: #3b1e1e;
+    --fehler-rand: #c05050;
+    --gut: #4cc38a;
+    --schlecht: #ef6b6b;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--hintergrund);
+  color: var(--text);
+  line-height: 1.4;
+}
+
+h2 {
+  font-size: 1.15rem;
+}
+
+/* ---------- Kopfzeile ---------- */
+
+.kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--akzent);
+  color: var(--akzent-text);
+}
+
+.kopf h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.kopf .ich {
+  background: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+}
+
+main {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* ---------- Knöpfe und Eingabefelder ---------- */
+
+button {
+  font: inherit;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--akzent);
+  border-radius: 0.5rem;
+  background: var(--akzent);
+  color: var(--akzent-text);
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.08);
+}
+
+.knopf-zweit {
+  background: var(--flaeche);
+  color: var(--akzent);
+}
+
+.knopf-klein {
+  min-height: 2.25rem;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+input[type="text"],
+select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.6rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: 0.5rem;
+}
+
+input[type="checkbox"] {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: 0;
+  accent-color: var(--akzent);
+  cursor: pointer;
+}
+
+/* ---------- Hinweise ---------- */
+
+.hinweis {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid;
+  border-radius: 0.5rem;
+}
+
+.hinweis.oben {
+  max-width: 50rem;
+  margin: 0.75rem auto 0;
+}
+
+@media (max-width: 52rem) {
+  .hinweis.oben {
+    margin: 0.75rem 1rem 0;
+  }
+}
+
+.hinweis-fehler {
+  background: var(--fehler);
+  border-color: var(--fehler-rand);
+}
+
+.hinweis-auftrag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: var(--auftrag);
+  border-color: var(--auftrag-rand);
+}
+
+.hinweis-auftrag .knoepfe {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ---------- Erster Start und Namensauswahl ---------- */
+
+.einrichten-form {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 22rem;
+}
+
+.auswahl-knoepfe {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+}
+
+.auswahl-knoepfe button {
+  padding: 1rem;
+  font-size: 1.2rem;
+}
+
+/* ---------- Eingabezeile ---------- */
+
+.eingabe {
+  display: grid;
+  grid-template-columns: 1fr 8rem auto;
+  align-items: end;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.eingabe label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-leise);
+}
+
+.eingabe button {
+  padding: 0 1.1rem;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+/* ---------- Tabelle ---------- */
+
+.tabelle {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+}
+
+.tabelle th,
+.tabelle td {
+  padding: 0.55rem 0.5rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--rand);
+  overflow-wrap: anywhere;
+}
+
+.tabelle th {
+  font-size: 0.85rem;
+  color: var(--text-leise);
+}
+
+.tabelle .spalte-check {
+  width: 3rem;
+  text-align: center;
+}
+
+.spalte-menge {
+  width: 7rem;
+}
+
+.spalte-von {
+  width: 7.5rem;
+}
+
+.spalte-auftrag {
+  width: 8rem;
+}
+
+.spalte-loeschen {
+  width: 3rem;
+}
+
+.tabelle tr.gekauft td {
+  color: var(--text-leise);
+  background: var(--gekauft);
+}
+
+.tabelle tr.gekauft .artikel-name {
+  text-decoration: line-through;
+}
+
+.loeschen-knopf {
+  min-height: auto;
+  padding: 0.3rem 0.4rem;
+  font-size: 1.1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-leise);
+}
+
+.klein {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-leise);
+}
+
+.nur-schmal {
+  display: none;
+}
+
+/* Auf dem Handy: weniger Spalten, die Infos stehen klein unter dem Artikel */
+@media (max-width: 600px) {
+  .nur-breit {
+    display: none;
+  }
+
+  .nur-schmal {
+    display: block;
+  }
+
+  .eingabe {
+    grid-template-columns: 1fr 5.5rem auto;
+  }
+
+  .spalte-menge {
+    width: 4.5rem;
+  }
+}
+
+/* ---------- Aktionen, Auftrag senden, gesendete Aufträge ---------- */
+
+.aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.panel {
+  padding: 0 1rem;
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: 0.5rem;
+}
+
+.auftrag-an {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 16rem;
+}
+
+.auftrag-artikel label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0;
+}
+
+.gesendet ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gesendet li {
+  margin-bottom: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: 0.5rem;
+}
+
+.status {
+  font-weight: 600;
+}
+
+.status-angenommen {
+  color: var(--gut);
+}
+
+.status-abgelehnt {
+  color: var(--schlecht);
+}
+
+.status-offen {
+  color: var(--text-leise);
+}
+
+.leer {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-leise);
+}
+
+/* Nur für Bildschirmleser, unsichtbar auf dem Bildschirm */
+.unsichtbar {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

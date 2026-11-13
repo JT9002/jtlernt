@@ -1,0 +1,4 @@
+# Die gespeicherte Einkaufsliste gehört nicht in Git
+daten.json
+daten.json.tmp
+daten.json.kaputt-*
